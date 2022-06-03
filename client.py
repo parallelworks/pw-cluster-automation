@@ -48,9 +48,14 @@ class Client():
     
     def start_job(self,workflow,inputs,user):
         inputs = json.dumps(inputs)
-        req = self.session.post(self.api + "/tools",data={'user':user,'tool_xml': "/workspaces/"+user+"/workflows/"+workflow+"/workflow.xml",'key':self.key,'tool_id':workflow,'inputs':inputs})
-        req.raise_for_status()
-        data = json.loads(req.text)
+        res = self.session.post(self.api + "/tools",data={'user':user,'tool_xml': "/workspaces/"+user+"/workflows/"+workflow+"/workflow.xml",'key':self.key,'tool_id':workflow,'inputs':inputs})
+        try:
+            res.raise_for_status()
+        except Exception as e:
+            print(e)
+            print(res.text)
+            raise e
+        data = json.loads(res.text)
         jid=data['jobs'][0]['id']
         djid=str(data['decoded_job_id'])
         return jid,djid
