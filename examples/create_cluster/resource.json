@@ -1,0 +1,56 @@
+{
+  "type": "pclusterv2",
+  "resourceName": "testfromapi",
+  "description": "",
+  "tags": "",
+  "username": "mcquade",
+  "resourceData": {
+    "availability_zone": "us-east-1b",
+    "controller_image": "latest",
+    "controller_net_type": false,
+    "export_fs_type": "ext4",
+    "image_disk_count": 1,
+    "image_disk_name": "snap-01c765349c95c0126",
+    "image_disk_size_gb": 250,
+    "management_shape": "c5n.2xlarge",
+    "partition_config": [
+      {
+        "availability_zone": "us-east-1b",
+        "default": "YES",
+        "elastic_image": "latest",
+        "enable_spot": false,
+        "instance_type": "c5n.18xlarge",
+        "max_node_num": 102,
+        "name": "compute",
+        "net_type": true
+      },
+      {
+        "availability_zone": "us-east-1b",
+        "default": "NO",
+        "elastic_image": "latest",
+        "enable_spot": false,
+        "instance_type": "c5.2xlarge",
+        "max_node_num": 10,
+        "name": "batch",
+        "net_type": false
+      }
+    ],
+    "region": "us-east-1"
+  },
+  "useLustre": true,
+  "lustreData": {
+    "fsxcompression": "NONE",
+    "fsxdeployment": "SCRATCH_2",
+    "storage_capacity": 14400
+  },
+  "universalData": {
+    "jump_node": false,
+    "multi_factor": false,
+    "multi_user": false,
+    "resource_account": "Pworks AWS",
+    "access_public_key": "",
+    "user_bootstrap": "",
+    "project": "610ad0ca4df5db7100f3606f"
+  },
+  "dockhide": false
+}
