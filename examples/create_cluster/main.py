@@ -9,7 +9,7 @@ from client import Client
 
 
 # inputs
-pw_url = "https://canary.parallel.works"
+pw_url = "https://beta.parallel.works"
 api_key = os.environ['PW_API_KEY']
 
 c = Client(pw_url, api_key)
