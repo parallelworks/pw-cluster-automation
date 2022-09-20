@@ -95,6 +95,12 @@ class Client():
         except:
             return None
 
+    def delete_resource(self, id: str):
+        req = self.session.delete(
+            self.api + "/v2/resources/{}?key={}".format(id, self.key))
+        req.raise_for_status()
+        return req.text
+
     def create_v2_cluster(self, name: str, description: str, tags: str, type: str):
         if type != 'pclusterv2' and type != 'gclusterv2' and type != 'azclusterv2':
             raise Exception("Invalid cluster type")

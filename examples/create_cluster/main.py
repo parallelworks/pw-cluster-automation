@@ -4,9 +4,10 @@ import sys
 import requests
 import json
 
+# fmt: off
 sys.path.append('../..')
 from client import Client
-
+# fmt: on
 
 # inputs
 pw_url = "https://beta.parallel.works"
@@ -15,7 +16,7 @@ api_key = os.environ['PW_API_KEY']
 c = Client(pw_url, api_key)
 
 cluster = c.create_v2_cluster(
-"testfromapi1", "testtest", "tag1,tag2", "pclusterv2")
+    "testfromapi1", "testtest", "tag1,tag2", "pclusterv2")
 cluster_id = cluster['_id']
 
 with open('resource.json') as cluster_defintion:
@@ -25,4 +26,3 @@ with open('resource.json') as cluster_defintion:
         print(updated_cluster)
     except requests.exceptions.HTTPError as e:
         print(e.response.text)
-   
