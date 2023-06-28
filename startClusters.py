@@ -19,17 +19,29 @@
                    file (i.e. export HOSTALIASES=$HOME/.hosts).
 """
 
-import json,requests,sys,time,os
+import subprocess
+import json
+import requests
+import sys
+import time
+import os
 from client import Client
 
 # inputs
-pw_url = "https://noaa.parallel.works"
+PW_PLATFORM_HOST = None
+if 'PW_PLATFORM_HOST' in os.environ:
+    PW_PLATFORM_HOST = os.environ['PW_PLATFORM_HOST']
+else:
+    print("No PW_PLATFORM_HOST environment variable found. Please set it to the Parallel Works platform host name. e.g. cloud.parallel.works")
+    sys.exit(1)
+
+pw_url = "https://" + PW_PLATFORM_HOST
 
 # specify the clusters to start and wait for activation
 #clusters = ["gcluster_noaa"]
-clusters = sys.argv[1].split(',')
+clusters_to_start = sys.argv[1].split(',')
 
-print('\nStarting clusters:',clusters)
+print('\nStarting clusters:', clusters_to_start)
 
 # used to run test ssh commands after the clusters start
 # ensure your public key is added to the cluster configuration on Parallel Works
@@ -44,45 +56,53 @@ keyfile = homedir + '/.ssh/pw_api.key'
 cluster_hosts = [f'# Generated Automatically ' + os.path.basename(__file__)]
 
 # get my personal API key
-try:
-  f = open(keyfile, "r")
-  api_key = f.readline().strip()
-  f.close()
-except IOError:
-  # Error out if there's no key
-  # could be improved by looking for an environment variable
-  # or asking the user to enter the key
-  print("Error: API file", keyfile, "does not appear to exist.")
-  sys.exit(1)
+# with the environment variable PW_API_KEY taking precedence
+# over the file $HOME/.ssh/pw_api.key
+api_key = None
+if 'PW_API_KEY' in os.environ:
+    api_key = os.environ['PW_API_KEY']
+else:
+    try:
+        f = open(keyfile, "r")
+        api_key = f.readline().strip()
+        f.close()
+    except:
+        pass
+
+if api_key is None or api_key == "":
+    print("No API key found. Please set the environment variable PW_API_KEY or create the file $HOME/.ssh/pw_api.key.")
+    sys.exit(1)
 
 # create a new Parallel Works client
-c = Client(pw_url,api_key)
+c = Client(pw_url, api_key)
 
 # get the account username
 account = c.get_account()
 
 user = account['info']['username']
-print("\nRunning as user",user+'...')
+print("\nRunning as user", user+'...')
+my_clusters = c.get_resources()
+for cluster_name in clusters_to_start:
 
-for cluster_name in clusters:
-
-    print("\nChecking cluster status",cluster_name+"...")
+    print("\nChecking cluster status", cluster_name+"...")
 
     # check if resource exists and is on
-    cluster=c.get_resource(cluster_name)
+    # find cluster_name in my_clusters
+    cluster = next(
+        (item for item in my_clusters if item["name"] == cluster_name), None)
     if cluster:
         if cluster['status'] == "off":
             # if resource not on, start it
-            print("Starting cluster",cluster_name+"...")
+            print("Starting cluster", cluster['name']+"...")
             time.sleep(0.2)
-            print(c.start_resource(cluster_name))
+            print(c.start_resource(cluster['id']))
         else:
-            print(cluster_name,"already running...")
+            print(cluster_name, "already running...")
     else:
         print("No cluster found.")
         sys.exit(1)
 
-print("\nWaiting for",len(clusters),"cluster(s) to start...")
+print("\nWaiting for", len(clusters_to_start), "cluster(s) to start...")
 
 laststate = {}
 started = []
@@ -93,70 +113,69 @@ while True:
 
     for cluster in current_state:
 
-      #print(cluster['name'],cluster['status'])
+        # print(cluster['name'],cluster['status'])
 
-      if cluster['name'] in clusters and cluster['status'] == 'on':
+        if cluster['name'] in clusters_to_start and cluster['status'] == 'on':
 
-        if cluster['name'] not in started:
+            if cluster['name'] not in started:
 
-          state = cluster['state']
+                state = cluster['state']
 
-          if cluster['name'] not in laststate:
-              print(cluster['name'],state)
-              laststate[cluster['name']] = state
+                if cluster['name'] not in laststate:
+                    print(cluster['name'], state)
+                    laststate[cluster['name']] = state
 
-          elif laststate[cluster['name']] != state:
-              print(cluster['name'],state)
-              laststate[cluster['name']] = state
+                elif laststate[cluster['name']] != state:
+                    print(cluster['name'], state)
+                    laststate[cluster['name']] = state
 
-          # if state == 'ok':
-          #     break
-          # elif (state == 'deleted' or state == 'error'):
-          #     raise Exception('Simulation had an error. Please try again')
+                # if state == 'ok':
+                #     break
+                # elif (state == 'deleted' or state == 'error'):
+                #     raise Exception('Simulation had an error. Please try again')
 
-          if 'masterNode' in cluster['state']:
-            if cluster['state']['masterNode'] != None:
-              ip = cluster['state']['masterNode']
-              entry = ' '.join([cluster['name'], ip])
-              print(entry)
-              cluster_hosts.append(entry)
-              started.append(cluster['name'])
+                if 'masterNode' in cluster['state']:
+                    if cluster['state']['masterNode'] != None:
+                        ip = cluster['state']['masterNode']
+                        entry = ' '.join([cluster['name'], ip])
+                        print(entry)
+                        cluster_hosts.append(entry)
+                        started.append(cluster['name'])
 
-    if len(started) == len(clusters):
-      print('\nStarted all clusters... writing hosts file')
-      break
+    if len(started) == len(clusters_to_start):
+        print('\nStarted all clusters... writing hosts file')
+        break
 
     time.sleep(5)
 
 # Generate the user's local .hosts file
 with open(hostsfile, 'w+') as f:
-  f.writelines("%s\n" % l for l in cluster_hosts)
-  print('SUCCESS - the', hostsfile, 'was updated.')
-  f.close()
+    f.writelines("%s\n" % l for l in cluster_hosts)
+    print('SUCCESS - the', hostsfile, 'was updated.')
+    f.close()
 
 # run example ssh command on each started cluster
 
 print("\nRunning test ssh commands on the clusters...")
-import subprocess
 
 testcmd = "sinfo"
 
-for ei,entry in enumerate(cluster_hosts):
+for ei, entry in enumerate(cluster_hosts):
 
-  if ei > 0: # skip the host header
+    if ei > 0:  # skip the host header
 
-    name = entry.split()[0]
-    ip = entry.split()[1]
+        name = entry.split()[0]
+        ip = entry.split()[1]
 
-    cmd = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s %s" % (user,ip,testcmd)
+        cmd = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s %s" % (
+            user, ip, testcmd)
 
-    print("")
-    print(name+':','"'+cmd+'"')
+        print("")
+        print(name+':', '"'+cmd+'"')
 
-    out = subprocess.check_output(
-          cmd,
-          stderr=subprocess.STDOUT,
-          shell=True).decode(sys.stdout.encoding)
+        out = subprocess.check_output(
+            cmd,
+            stderr=subprocess.STDOUT,
+            shell=True).decode(sys.stdout.encoding)
 
-    print(out)
-
+        print(out)
