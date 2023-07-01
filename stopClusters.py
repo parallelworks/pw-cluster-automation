@@ -60,9 +60,9 @@ if api_key is None or api_key == "":
 c = Client(pw_url, api_key)
 
 # get the account username
-account = c.get_account()
+session = c.get_identity()
 
-user = account['info']['username']
+user = session['username']
 print("\nRunning as user", user+'...')
 my_clusters = c.get_resources()
 

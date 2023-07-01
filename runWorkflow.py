@@ -19,7 +19,11 @@
                    file (i.e. export HOSTALIASES=$HOME/.hosts).
 """
 
-import json,requests,sys,time,os
+import json
+import requests
+import sys
+import time
+import os
 from client import Client
 
 # inputs
@@ -30,7 +34,7 @@ clusters = ["pcluster_noaa"]
 workflow = ["start_jupyterlab"]
 #clusters = sys.argv[1].split(',')
 
-print('\nStarting clusters:',clusters)
+print('\nStarting clusters:', clusters)
 
 # used to run test ssh commands after the clusters start
 # ensure your public key is added to the cluster configuration on Parallel Works
@@ -60,33 +64,33 @@ api_key = os.environ['PW_API_KEY']
 #   sys.exit(1)
 
 # create a new Parallel Works client
-c = Client(pw_url,api_key)
+c = Client(pw_url, api_key)
 
 # get the account username
-account = c.get_account()
+session = c.get_identity()
 
-user = account['info']['username']
-print("\nRunning as user",user+'...')
+user = session['username']
+print("\nRunning as user", user+'...')
 
 for cluster_name in clusters:
 
-    print("\nChecking cluster status",cluster_name+"...")
+    print("\nChecking cluster status", cluster_name+"...")
 
     # check if resource exists and is on
-    cluster=c.get_resource(cluster_name)
+    cluster = c.get_resource(cluster_name)
     if cluster:
         if cluster['status'] == "off":
             # if resource not on, start it
-            print("Starting cluster",cluster_name+"...")
+            print("Starting cluster", cluster_name+"...")
             time.sleep(0.2)
             print(c.start_resource(cluster_name))
         else:
-            print(cluster_name,"already running...")
+            print(cluster_name, "already running...")
     else:
         print("No cluster found.")
         sys.exit(1)
 
-print("\nWaiting for",len(clusters),"cluster(s) to start...")
+print("\nWaiting for", len(clusters), "cluster(s) to start...")
 
 laststate = {}
 started = []
@@ -97,38 +101,38 @@ while True:
 
     for cluster in current_state:
 
-      #print(cluster['name'],cluster['status'])
+        # print(cluster['name'],cluster['status'])
 
-      if cluster['name'] in clusters and cluster['status'] == 'on':
+        if cluster['name'] in clusters and cluster['status'] == 'on':
 
-        if cluster['name'] not in started:
+            if cluster['name'] not in started:
 
-          state = cluster['state']
+                state = cluster['state']
 
-          if cluster['name'] not in laststate:
-              print(cluster['name'],state)
-              laststate[cluster['name']] = state
+                if cluster['name'] not in laststate:
+                    print(cluster['name'], state)
+                    laststate[cluster['name']] = state
 
-          elif laststate[cluster['name']] != state:
-              print(cluster['name'],state)
-              laststate[cluster['name']] = state
+                elif laststate[cluster['name']] != state:
+                    print(cluster['name'], state)
+                    laststate[cluster['name']] = state
 
-          # if state == 'ok':
-          #     break
-          # elif (state == 'deleted' or state == 'error'):
-          #     raise Exception('Simulation had an error. Please try again')
+                # if state == 'ok':
+                #     break
+                # elif (state == 'deleted' or state == 'error'):
+                #     raise Exception('Simulation had an error. Please try again')
 
-          if 'masterNode' in cluster['state']:
-            if cluster['state']['masterNode'] != None:
-              ip = cluster['state']['masterNode']
-              entry = ' '.join([cluster['name'], ip])
-              print(entry)
-              cluster_hosts.append(entry)
-              started.append(cluster['name'])
+                if 'masterNode' in cluster['state']:
+                    if cluster['state']['masterNode'] != None:
+                        ip = cluster['state']['masterNode']
+                        entry = ' '.join([cluster['name'], ip])
+                        print(entry)
+                        cluster_hosts.append(entry)
+                        started.append(cluster['name'])
 
     if len(started) == len(clusters):
-      print('\nStarted all clusters...')
-      break
+        print('\nStarted all clusters...')
+        break
 
     time.sleep(5)
 
@@ -140,6 +144,6 @@ while True:
 
 # run example ssh command on each started cluster
 
-print("\nExecuting workflow",workflow,"on the cluster...")
+print("\nExecuting workflow", workflow, "on the cluster...")
 
 print(workflow)

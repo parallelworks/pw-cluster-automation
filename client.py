@@ -75,8 +75,8 @@ class Client():
         req.raise_for_status()
         return req.text
 
-    def get_account(self):
-        url = self.api + "/account?key=" + self.key
+    def get_identity(self):
+        url = self.api + "/api/v2/auth/session?key=" + self.key
         req = self.session.get(url)
         req.raise_for_status()
         data = json.loads(req.text)
