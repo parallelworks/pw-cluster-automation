@@ -25,7 +25,7 @@ class Client():
         req.raise_for_status()
         data = json.loads(req.text)
 
-        resource = [x for x in data if x['name'] == name]
+        resource = [x for x in data if x['name'].lower() == name.lower()]
 
         return resource
 
@@ -90,6 +90,7 @@ class Client():
         req.raise_for_status()
         data = json.loads(req.text)
         return data
+        
     def run_workflow(self, name, inputs):
         url = self.api + "/v2/workflows/" + name + "/start?key=" + self.key
         payload = {
@@ -99,6 +100,7 @@ class Client():
         req.raise_for_status()
         data = json.loads(req.text)
         return data
+
     def get_latest_job_status(self, workflow_name):
         url = self.api + "/v2/workflows/" + workflow_name + "/getJob?key=" + self.key
         req = self.session.get(url)
