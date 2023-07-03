@@ -20,6 +20,15 @@ class Client():
         data = json.loads(req.text)
         return data
 
+    def get_resource(self, name):
+        req = self.session.get(self.api + "/resources?key=" + self.key)
+        req.raise_for_status()
+        data = json.loads(req.text)
+
+        resource = [x for x in data if x['name'] == name]
+
+        return resource
+
     def delete_resource(self, id: str):
         req = self.session.delete(
             self.api + "/v2/resources/{}?key={}".format(id, self.key))
@@ -76,7 +85,22 @@ class Client():
         return req.text
 
     def get_identity(self):
-        url = self.api + "/api/v2/auth/session?key=" + self.key
+        url = self.api + "/v2/auth/session?key=" + self.key
+        req = self.session.get(url)
+        req.raise_for_status()
+        data = json.loads(req.text)
+        return data
+    def run_workflow(self, name, inputs):
+        url = self.api + "/v2/workflows/" + name + "/start?key=" + self.key
+        payload = {
+            'variables': inputs
+        }
+        req = self.session.post(url, json=payload)
+        req.raise_for_status()
+        data = json.loads(req.text)
+        return data
+    def get_latest_job_status(self, workflow_name):
+        url = self.api + "/v2/workflows/" + workflow_name + "/getJob?key=" + self.key
         req = self.session.get(url)
         req.raise_for_status()
         data = json.loads(req.text)
