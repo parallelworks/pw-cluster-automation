@@ -9,7 +9,7 @@ from client import Client
 
 # inputs
 pw_url = "https://noaa.parallel.works"
-api_key = "ab9373dc77838d6df3c23bde2d8a84e3" # noaamaster api key
+api_key = "xxx" # your api key goes here 
 
 jsonfile = "test_upload.json"
 
