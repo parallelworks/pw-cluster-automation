@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 """
-  This script will automatically connect to the NOAA ParallelWorks gateway to retrieve
-  information about the current clusters using the user's API key.
+  This script will automatically connect to the ParallelWorks gateway to retrieve
+  information about storage resources using the user's API key.
+
+  It will then generate short-term credentials for the buckets provided
 
   Critical files that must exist:
 
@@ -30,7 +32,6 @@ else:
 pw_url = "https://" + PW_PLATFORM_HOST
 
 # specify the clusters to start and wait for activation
-#clusters = ["gcluster_noaa"]
 buckets_to_access = sys.argv[1].split(',')
 
 print('\nGenerating credentials for buckets:', buckets_to_access)
