@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-  This script will automatically connect to the NOAA ParallelWorks gateway to retrieve
+  This script will automatically connect to the ParallelWorks gateway to retrieve
   information about the current clusters using the user's API key.
 
   Critical files that must exist:
@@ -38,7 +38,6 @@ else:
 pw_url = "https://" + PW_PLATFORM_HOST
 
 # specify the clusters to start and wait for activation
-#clusters = ["gcluster_noaa"]
 clusters_to_start = sys.argv[1].split(',')
 
 print('\nStarting clusters:', clusters_to_start)
