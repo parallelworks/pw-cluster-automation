@@ -107,3 +107,32 @@ class Client():
         req.raise_for_status()
         data = json.loads(req.text)
         return data
+
+    def get_storages(self):
+        req = self.session.get(self.api + "/v2/storage?key=" + self.key)
+        #req = self.session.get(self.api + "/v2/storage?key={}&namespace={}".format(self.key, namespace))
+        req.raise_for_status()
+        data = json.loads(req.text)
+        return data
+
+    #def start_storage(self, id: str):
+    #    req = self.session.post(
+    #        self.api + "/v2/storage/{}/provision?key={}".format(id, self.key))
+    #    req.raise_for_status()
+    #    return req.text
+
+    #def stop_storage(self, id):
+    #    req = self.session.delete(
+    #        self.api + "/resources/stop?key=" + self.key + "&id=" + id)
+    #    req.raise_for_status()
+    #    return req.text
+
+    def get_bucket_cred(self, id: str):
+        url = self.api + "/v2/vault/getBucketToken?key=" + self.key
+        payload = {
+            'bucketID': id,
+        }
+        req = self.session.post(url, json=payload)
+        req.raise_for_status()
+        data = json.loads(req.text)
+        return data 

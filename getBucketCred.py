@@ -2,7 +2,9 @@
 
 """
   This script will automatically connect to the ParallelWorks gateway to retrieve
-  information about the current clusters using the user's API key.
+  information about storage resources using the user's API key.
+
+  It will then generate short-term credentials for the buckets provided
 
   Critical files that must exist:
 
@@ -11,6 +13,7 @@
                             .ssh directory.  Change permissions to mode 600.
 """
 
+import subprocess
 import json
 import requests
 import sys
@@ -27,14 +30,15 @@ else:
     sys.exit(1)
 
 pw_url = "https://" + PW_PLATFORM_HOST
-# specify the clusters to start and wait for activation
-clusters_to_stop = sys.argv[1].split(',')
 
-# used to run test ssh commands after the clusters start
-# ensure your public key is added to the cluster configuration on Parallel Works
+# specify the clusters to start and wait for activation
+buckets_to_access = sys.argv[1].split(',')
+
+print('\nGenerating credentials for buckets:', buckets_to_access)
 
 # Get user specific files
 homedir = os.environ['HOME']
+# The .hosts file will get re-written every time
 keyfile = homedir + '/.ssh/pw_api.key'
 
 # get my personal API key
@@ -63,24 +67,33 @@ session = c.get_identity()
 
 user = session['username']
 print("\nRunning as user", user+'...')
-my_clusters = c.get_resources()
+my_buckets = c.get_storages()
+for bucket_name in buckets_to_access:
 
-for cluster_name in clusters_to_stop:
+    try:
+        bucket_name = bucket_name.split('/')
+        bucket_namespace = bucket_name[0]
+        bucket_name = bucket_name[1]
+    except IndexError:
+        print("No namespace provided for", bucket_name[0]+".", "Default to current user", user)
+        bucket_name = bucket_name[0]
+        bucket_namespace = user
 
-    print("\nChecking cluster status", cluster_name+"...")
+    print("\nLooking for bucket", bucket_name, "in namespace", bucket_namespace+"...")
 
-    # check if resource exists and is on
-    cluster = next(
-        (item for item in my_clusters if item["name"] == cluster_name), None)
-    if cluster:
-        if cluster['status'] == "on":
-            # if resource not on, start it
-            print("Stopping cluster", cluster['name']+"...")
-            print(c.stop_resource(cluster['id']))
-        else:
-            print(cluster_name, "already stopped...")
+    # check if resource exists
+    # find bucket_name in my_storages and map to ID
+    # this logic currently only lets you get creds for buckets you own
+    bucket = next(
+        (item for item in my_buckets if item["name"] == bucket_name and item["namespace"] == bucket_namespace), None)
+    if "bucket" not in bucket['type']:
+        print("Storage provided is not a bucket.")
+    elif bucket['provisioned'] != True:
+        print("Bucket provided is not currently provisioned.")
+    elif bucket:
+        print("Identified bucket", bucket['name'], "as", bucket['id'])
+
+        # generate short-term bucket credentials
+        print(c.get_bucket_cred(bucket['id']))
     else:
-        print("No cluster found.")
-        sys.exit(1)
-
-print("\nStopped", len(clusters_to_stop), "clusters...\n")
+        print("No bucket found.")
