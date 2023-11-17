@@ -86,7 +86,7 @@ inputs = {
     "startCmd" : "main.sh",
 
     # Define which resource to run (should not be changed)
-    "resource_label": {
+    "resource": {
         "id" : resource_id,
         "type": "computeResource"
     }
