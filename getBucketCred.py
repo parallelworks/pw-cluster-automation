@@ -20,6 +20,11 @@ import sys
 import time
 import os
 from client import Client
+import re
+
+def is_mongo_id(string):
+    pattern = re.compile(r'^[0-9a-fA-F]{24}$')
+    return bool(pattern.match(string))
 
 # inputs
 PW_PLATFORM_HOST = None
@@ -84,8 +89,14 @@ for bucket_name in buckets_to_access:
     # check if resource exists
     # find bucket_name in my_storages and map to ID
     # this logic currently only lets you get creds for buckets you own
-    bucket = next(
-        (item for item in my_buckets if item["name"] == bucket_name and item["namespace"] == bucket_namespace), None)
+    
+    # check if bucket_name is mongo id or name of the bucket
+    if is_mongo_id(bucket_name):
+        bucket = next(
+            (item for item in my_buckets if item["id"] == bucket_name and item["namespace"] == bucket_namespace), None)
+    else:
+        bucket = next(
+            (item for item in my_buckets if item["name"] == bucket_name and item["namespace"] == bucket_namespace), None)
     if "bucket" not in bucket['type']:
         print("Storage provided is not a bucket.")
     elif bucket['provisioned'] != True:
