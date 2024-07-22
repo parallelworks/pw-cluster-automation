@@ -113,7 +113,7 @@ class Client():
         return data
 
     def get_latest_job_status(self, workflow_name):
-        url = self.api + "/v2/workflows/" + workflow_name + "/getJob"
+        url = self.api + "/v2/workflows/" + workflow_name + "/jobs/0"
         req = self.session.get(url, headers = self.headers)
         req.raise_for_status()
         data = json.loads(req.text)
