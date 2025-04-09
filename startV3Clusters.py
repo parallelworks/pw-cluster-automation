@@ -135,6 +135,9 @@ while True:
                     if state == "running":
                         started.append(cluster['name'])
                         print("Cluster", cluster['name'], "is now ready. Controller IP:", cluster['controllerIp']) 
+                        ip = cluster['controllerIp'] 
+                        entry = ' '.join([cluster['name'], ip])
+                        cluster_hosts.append(entry)
 
     if len(started) == len(clusters_to_start):
         #print('\nStarted all clusters... writing hosts file')
@@ -142,3 +145,36 @@ while True:
         break
 
     time.sleep(5)
+
+### test host file updates ###
+# Generate the user's local .hosts file
+with open(hostsfile, 'w+') as f:
+    f.writelines("%s\n" % l for l in cluster_hosts)
+    print('SUCCESS - the', hostsfile, 'was updated.')
+    f.close()
+
+# run example ssh command on each started cluster
+
+print("\nRunning test ssh commands on the clusters...")
+
+testcmd = "sinfo"
+
+for ei, entry in enumerate(cluster_hosts):
+
+    if ei > 0:  # skip the host header
+
+        name = entry.split()[0]
+        ip = entry.split()[1]
+
+        cmd = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null %s@%s %s" % (
+            user, ip, testcmd)
+
+        print("")
+        print(name+':', '"'+cmd+'"')
+
+        out = subprocess.check_output(
+            cmd, 
+            stderr=subprocess.STDOUT,
+            shell=True).decode(sys.stdout.encoding)
+
+        print(out)
