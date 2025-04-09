@@ -31,6 +31,13 @@ class Client():
 
         return resource
 
+    def get_v3_clusters(self):
+        #req = self.session.get(self.api + "/compute/clusters/" + user, headers = self.headers)
+        req = self.session.get(self.api + "/compute/clusters/", headers = self.headers)
+        req.raise_for_status()
+        data = json.loads(req.text)
+        return data
+
     def delete_resource(self, id: str):
         req = self.session.delete(
             self.api + "/v2/resources/{}".format(id),
@@ -76,11 +83,27 @@ class Client():
         req.raise_for_status()
         return req.text
 
+    def start_v3_cluster(self, namespace, clusterName):
+        req = self.session.post(
+            self.api + "/compute/clusters/" + namespace + "/" + clusterName + "/sessions",
+            headers = self.headers
+        )
+        req.raise_for_status()
+        return req.text
+
     def stop_resource(self, id):
         req = self.session.get(
             self.api + "/resources/stop",
             params = {'id': id},
             headers = self.headers   
+        )
+        req.raise_for_status()
+        return req.text
+
+    def stop_v3_cluster(self, namespace, clusterName):
+        req = self.session.delete(
+            self.api + "/compute/clusters/" + namespace + "/" + clusterName + "/sessions",
+            headers = self.headers
         )
         req.raise_for_status()
         return req.text
