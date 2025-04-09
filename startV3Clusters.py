@@ -146,7 +146,6 @@ while True:
 
     time.sleep(5)
 
-### test host file updates ###
 # Generate the user's local .hosts file
 with open(hostsfile, 'w+') as f:
     f.writelines("%s\n" % l for l in cluster_hosts)
