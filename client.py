@@ -32,8 +32,13 @@ class Client():
         return resource
 
     def get_v3_clusters(self):
-        #req = self.session.get(self.api + "/compute/clusters/" + user, headers = self.headers)
         req = self.session.get(self.api + "/compute/clusters/", headers = self.headers)
+        req.raise_for_status()
+        data = json.loads(req.text)
+        return data
+
+    def get_v3_cluster(self, namespace, cluster):
+        req = self.session.get(self.api + "/compute/clusters/" + namespace + "/" + cluster, headers = self.headers)
         req.raise_for_status()
         data = json.loads(req.text)
         return data
@@ -125,6 +130,12 @@ class Client():
         data = json.loads(req.text)
         return data
         
+    def get_workflows(self):
+        req = self.session.get(self.api + "/v2/workflows", headers = self.headers)
+        req.raise_for_status()
+        data = json.loads(req.text)
+        return data
+
     def run_workflow(self, name, inputs):
         url = self.api + "/v2/workflows/" + name + "/start"
         payload = {
