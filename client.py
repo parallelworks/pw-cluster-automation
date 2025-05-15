@@ -180,3 +180,42 @@ class Client():
         req.raise_for_status()
         data = json.loads(req.text)
         return data 
+
+    def get_group(self, name):
+        req = self.session.get(self.api + "/v2/organization/teams", headers = self.headers)
+        req.raise_for_status()
+        data = json.loads(req.text)
+
+        group = [x for x in data if x['name'].lower() == name.lower()]
+
+        return group
+
+    def get_gid(self, name):
+        req = self.session.get(self.api + "/v2/organization/teams", headers = self.headers)
+        req.raise_for_status()
+        data = json.loads(req.text)
+
+        gid = list ((p_id.get('id') for p_id in data if p_id.get('name') == name ))
+
+        return gid[0]
+
+    def add_to_group(self, group, user):
+        gid = self.get_gid(group)
+        url = self.api + "/v2/organization/teams/" + gid + "/members"
+        payload = {'username': user}
+
+        req = self.session.post(url, json=payload, headers = self.headers)
+        req.raise_for_status()
+        data = json.loads(req.text)
+
+        return data
+
+    def delete_from_group(self, group, user):
+        gid = self.get_gid(group)
+        url = self.api + "/v2/organization/teams/" + gid + "/members"
+        payload = {'username': user}
+
+        req = self.session.delete(url, json=payload, headers = self.headers)
+        req.raise_for_status()
+
+        return req.text
