@@ -79,6 +79,18 @@ class Client():
         data = json.loads(req.text)
         return data
 
+    def create_v3_cluster(self, clusterDef):
+        url = self.api + "/compute/clusters/"
+        req = self.session.post(url, json = clusterDef, headers = self.headers)
+        req.raise_for_status()
+        return req.text
+        
+    def update_v3_cluster(self, clusterDef, namespace, clusterName):
+        url = self.api + "/compute/clusters/" + namespace + "/" + clusterName
+        req = self.session.patch(url, json = clusterDef, headers = self.headers)
+        req.raise_for_status() 
+        return req.text
+
     def start_resource(self, id: str):
         req = self.session.get(
             self.api + "/resources/start",
