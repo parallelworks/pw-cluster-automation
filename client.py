@@ -125,16 +125,6 @@ class Client():
         req.raise_for_status()
         return req.text
 
-    def update_resource(self, name, params):
-        # FIXME: Update headers
-        update = "&name={}".format(name)
-        for key, value in params.items():
-            update = "{}&{}={}".format(update, key, value)
-        req = self.session.post(
-            self.api + "/resources/set?key=" + self.key + update)
-        req.raise_for_status()
-        return req.text
-
     def get_identity(self):
         url = self.api + "/v2/auth/session"
         req = self.session.get(url, headers = self.headers)

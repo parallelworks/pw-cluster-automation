@@ -22,16 +22,6 @@ inputs = {
 # create a new Parallel Works client
 c = Client(pw_url,api_key)
 
-# adjust resources
-if update_resource:
-    params = {
-                "max": 15,
-                "min": 1 ## Will automatically turn on one node
-            } 
-    update = c.update_resource(resource_name, params)
-
-    #print(c.stop_resource(resource_name))  ## You have to stop and restart a resource after updating anything other than the min and max
-
 print("Running workflow",workflow_name,"on resource",resource_name,"...")
 
 # check if resource exists and is on
