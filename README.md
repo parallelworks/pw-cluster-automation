@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> We have published offical client sdks at https://github.com/parallelworks/sdk  
+> We have published official client sdks at https://github.com/parallelworks/sdk  
 > This repository is archived and no longer maintained.
 
 
