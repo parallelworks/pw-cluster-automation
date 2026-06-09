@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> We have published offical client sdks at https://github.com/parallelworks/sdk  
+> This repository is archived and no longer maintained.
+
+
 # Cluster Automation on Parallel Works
 
 This repo uses the Parallel Works REST API to start a group of clusters, wait for their master node IP addresses, then runs example ssh commands using the fetched IP addresses of the started master nodes.
